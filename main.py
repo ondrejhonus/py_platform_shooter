@@ -15,7 +15,9 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
 
-            self.screen.fill((0, 0, 0))
+            background = pygame.image.load('assets/bg.png')
+            background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+            self.screen.blit(background, (0, 0))
             pygame.display.flip()
 
         pygame.quit()
@@ -23,3 +25,4 @@ class Game:
 if __name__ == "__main__":
     game = Game()
     game.run()
+    
