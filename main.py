@@ -1,6 +1,7 @@
 import pygame
 from models.settings import *
 from models.player import Player
+from models.sec_player import SecondPlayer
 from models.borders import WorldBorder
 
 class Game:
@@ -15,12 +16,12 @@ class Game:
         self.running = True
         self.screen_width = SCREEN_WIDTH
         self.screen_height = SCREEN_HEIGHT
-        self.player = Player()
+        self.background = pygame.image.load('assets/bg-fullhd.png').convert()
         self.world_border = WorldBorder(self.screen_width, self.screen_height)
 
-        # Load and optimize background
-        self.background = pygame.image.load('assets/bg-fullhd.png').convert()
-        # self.background = pygame.transform.smoothscale(self.background, (self.screen_width, self.screen_height))
+        self.player = Player()
+        self.sec_player = SecondPlayer(SCREEN_WIDTH - SCREEN_WIDTH * 0.15, SCREEN_HEIGHT - SCREEN_HEIGHT * 0.15)
+
 
     def run(self):
         while self.running:
@@ -49,6 +50,7 @@ class Game:
     def draw(self):
         self.screen.blit(self.background, (0, 0))
         self.player.draw(self.screen)
+        self.sec_player.draw(self.screen)
         pygame.display.update()
 
 if __name__ == "__main__":
