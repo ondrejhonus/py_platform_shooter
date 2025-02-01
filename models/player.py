@@ -1,8 +1,9 @@
 import pygame
 import models.settings as settings
+import models.bullet as bullet
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, bullet_group):
         super().__init__()
         self.image = pygame.image.load('assets/player.png')
         self.width = 64
@@ -15,6 +16,11 @@ class Player(pygame.sprite.Sprite):
         self.speed = 5
         self.gravity = 0.6
         self.velocity_y = 0
+        self.bullets = bullet_group
+        self.mouse_pressed = False
+        self.last_shot = 0
+        self.shoot_delay = 500
+
 
     def move(self, sec_player):
         keys = pygame.key.get_pressed()
@@ -60,3 +66,12 @@ class Player(pygame.sprite.Sprite):
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+
+    def last_shot(self):
+        self.last_shot = pygame.time.get_ticks()
+
+    def shoot(self, bullets, mouse_pos):
+        bullet_direction = pygame.math.Vector2(mouse_pos) - pygame.math.Vector2(self.rect.center)
+        bullet_direction = bullet_direction.normalize()
+        new_bullet = bullet.Bullet((self.rect.centerx, self.rect.centery), mouse_pos)
+        bullets.add(new_bullet)
