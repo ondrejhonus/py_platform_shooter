@@ -8,7 +8,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode(
-            (SCREEN_WIDTH, SCREEN_HEIGHT), 
+            (SCREEN_WIDTH, SCREEN_HEIGHT),
             pygame.SCALED | pygame.DOUBLEBUF | pygame.HWSURFACE
         )
         pygame.display.set_caption("PyShooter")
@@ -22,7 +22,6 @@ class Game:
         self.player = Player()
         self.sec_player = SecondPlayer(SCREEN_WIDTH - SCREEN_WIDTH * 0.15, SCREEN_HEIGHT - SCREEN_HEIGHT * 0.15)
 
-
     def run(self):
         while self.running:
             self.handle_events()
@@ -30,7 +29,7 @@ class Game:
             self.draw()
             self.clock.tick(FPS)
         pygame.quit()
-    
+
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -44,8 +43,10 @@ class Game:
                 )
 
     def update(self):
-        self.player.move()
+        self.player.move(self.sec_player)
+        self.sec_player.update()
         self.world_border.keep_within_bounds(self.player)
+        self.world_border.keep_within_bounds(self.sec_player)
 
     def draw(self):
         self.screen.blit(self.background, (0, 0))
