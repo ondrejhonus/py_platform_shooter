@@ -1,5 +1,5 @@
 import pygame
-import models.settings as settings
+import settings as settings
 
 class WorldBorder:
     def __init__(self):

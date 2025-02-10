@@ -1,38 +1,26 @@
 import pygame
-import models.settings as settings
+import settings
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, player_pos, mouse_pos):
+    def __init__(self, start_pos, target_pos):
         super().__init__()
-        self.original_image = pygame.Surface((10, 5))
-        self.original_image.fill((255, 0, 0))
-        self.image = self.original_image
+        self.image = pygame.image.load('assets/bullet.png')  # Replace with your bullet image
         self.rect = self.image.get_rect()
-
-        # Calculate direction
-        self.direction = pygame.math.Vector2(mouse_pos) - pygame.math.Vector2(player_pos)
-        if self.direction.length() > 0:
-            self.direction = self.direction.normalize()
-
-        self.speed = 30
-        self.gravity = 0.025
-
-        # Calculate the initial position 64 pixels away from the player
-        spawn_offset = self.direction * 64
-        self.rect.center = pygame.math.Vector2(player_pos) + spawn_offset
-
-        # Calculate the angle
-        self.angle = self.direction.angle_to(pygame.math.Vector2(1, 0))
-        self.image = pygame.transform.rotate(self.original_image, -self.angle)
-        self.rect = self.image.get_rect(center=self.rect.center)
+        self.rect.center = start_pos
+        
+        # Calculate direction vector (normalized)
+        dx = target_pos[0] - start_pos[0]
+        dy = target_pos[1] - start_pos[1]
+        distance = (dx**2 + dy**2)**0.5
+        self.direction = (dx / distance, dy / distance)
+        
+        self.speed = 10  # Bullet speed
 
     def update(self):
-        self.rect.x += self.direction.x * self.speed
-        self.rect.y += self.direction.y * self.speed + self.gravity
-
-        self.direction.y += self.gravity
-
-        # Remove the bullet if it goes out of bounds
-        if self.rect.right < 0 or self.rect.left > settings.SCREEN_WIDTH or \
-           self.rect.bottom < 0 or self.rect.top > settings.SCREEN_HEIGHT:
+        """Update the bullet's position."""
+        self.rect.x += self.direction[0] * self.speed
+        self.rect.y += self.direction[1] * self.speed
+        
+        # Remove bullet if it goes out of screen bounds
+        if not settings.SCREEN_RECT.colliderect(self.rect):
             self.kill()
