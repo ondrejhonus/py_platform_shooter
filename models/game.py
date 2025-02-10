@@ -4,6 +4,7 @@ from models.player import Player
 from models.sec_player import SecondPlayer
 from models.borders import WorldBorder
 from models.bullet import Bullet
+from models.platform import Platform
 
 class Game:
     def __init__(self):
@@ -18,7 +19,8 @@ class Game:
         self.screen_width = SCREEN_WIDTH
         self.screen_height = SCREEN_HEIGHT
         self.background = pygame.image.load('assets/bg-fullhd.png').convert()
-        self.world_border = WorldBorder(self.screen_width, self.screen_height)
+        self.world_border = WorldBorder()
+        self.platforms = pygame.sprite.Group()
         
         self.all_sprites = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
@@ -27,6 +29,13 @@ class Game:
 
         self.all_sprites.add(self.player)
         self.all_sprites.add(self.sec_player)
+
+        for _ in range(10):
+            platform = Platform(self.platforms)
+            self.platforms.add(platform)
+            self.all_sprites.add(platform)
+
+        self.font = pygame.font.Font(None, 36)
 
     def run(self):
         while self.running:
@@ -56,14 +65,50 @@ class Game:
                         self.player.last_shot = current_time
 
     def update(self):
-        self.player.move(self.sec_player)
+        self.player.move(self.sec_player, self.platforms)
         self.sec_player.update()
         self.bullets.update()
         self.world_border.keep_within_bounds(self.player)
         self.world_border.keep_within_bounds(self.sec_player)
 
+        # Check if player HP is 0 or less and kill them
+        if self.player.hp <= 0:
+            self.player.kill()
+        if self.sec_player.hp <= 0:
+            self.sec_player.kill()
+
+        if not self.player.alive() or not self.sec_player.alive():
+            self.display_winner()
+            self.running = False
+
     def draw(self):
         self.screen.blit(self.background, (0, 0))
         self.all_sprites.draw(self.screen)
         self.player.bullets.draw(self.screen)
+        self.platforms.draw(self.screen)
+        self.draw_player_hp()
         pygame.display.update()
+
+    def draw_player_hp(self):
+        # Draw HP for the first player
+        if self.player.alive():
+            hp_text = self.font.render(f'HP: {self.player.hp}', True, (255, 255, 255))
+            self.screen.blit(hp_text, (self.player.rect.x, self.player.rect.y - 20))
+        
+        # Draw HP for the second player
+        if self.sec_player.alive():
+            sec_hp_text = self.font.render(f'HP: {self.sec_player.hp}', True, (255, 255, 255))
+            self.screen.blit(sec_hp_text, (self.sec_player.rect.x, self.sec_player.rect.y - 20))
+
+    def display_winner(self):
+        self.screen.fill((0, 0, 0))
+        if self.player.alive():
+            winner_text = self.font.render('Player 1 Won!', True, (255, 255, 255))
+        elif self.sec_player.alive():
+            winner_text = self.font.render('Player 2 Won!', True, (255, 255, 255))
+        else:
+            winner_text = self.font.render('No Players Left!', True, (255, 255, 255))
+        text_rect = winner_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
+        self.screen.blit(winner_text, text_rect)
+        pygame.display.update()
+        pygame.time.wait(3000)  # Wait for 3 seconds before closing the game

@@ -2,7 +2,7 @@ import pygame
 import models.settings as settings
 
 class WorldBorder:
-    def __init__(self, screen_width, screen_height):
+    def __init__(self):
         self.screen_width = settings.SCREEN_WIDTH
         self.screen_height = settings.SCREEN_HEIGHT
 

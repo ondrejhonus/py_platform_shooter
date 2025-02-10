@@ -8,17 +8,20 @@ class Bullet(pygame.sprite.Sprite):
         self.original_image.fill((255, 0, 0))
         self.image = self.original_image
         self.rect = self.image.get_rect()
-        self.rect.center = player_pos
 
-        # Calculate the direction
+        # Calculate direction
         self.direction = pygame.math.Vector2(mouse_pos) - pygame.math.Vector2(player_pos)
         if self.direction.length() > 0:
             self.direction = self.direction.normalize()
 
         self.speed = 30
-        self.gravity = 0.025  # Gravity factor
+        self.gravity = 0.025
 
-        # Calculate the angle for rotation
+        # Calculate the initial position 64 pixels away from the player
+        spawn_offset = self.direction * 64
+        self.rect.center = pygame.math.Vector2(player_pos) + spawn_offset
+
+        # Calculate the angle
         self.angle = self.direction.angle_to(pygame.math.Vector2(1, 0))
         self.image = pygame.transform.rotate(self.original_image, -self.angle)
         self.rect = self.image.get_rect(center=self.rect.center)
@@ -27,7 +30,6 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.x += self.direction.x * self.speed
         self.rect.y += self.direction.y * self.speed + self.gravity
 
-        # Apply gravity to the y-direction
         self.direction.y += self.gravity
 
         # Remove the bullet if it goes out of bounds

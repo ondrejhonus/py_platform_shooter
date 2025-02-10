@@ -1,6 +1,7 @@
 import pygame
 import models.settings as settings
 import models.bullet as bullet
+import models.platform as platform
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, bullet_group):
@@ -20,13 +21,15 @@ class Player(pygame.sprite.Sprite):
         self.mouse_pressed = False
         self.last_shot = 0
         self.shoot_delay = 500
+        self.on_ground = False
 
+        self.hp = 100
 
-    def move(self, sec_player):
+    def move(self, sec_player, platforms):
         keys = pygame.key.get_pressed()
 
         # Move left
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.rect.x -= self.speed
             # Prevent moving left if colliding with sec_player
             if self.rect.colliderect(sec_player.rect):
@@ -35,7 +38,7 @@ class Player(pygame.sprite.Sprite):
                 self.directions = "left"
 
         # Move right
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             self.rect.x += self.speed
             # Prevent moving right if colliding with sec_player
             if self.rect.colliderect(sec_player.rect):
@@ -44,21 +47,43 @@ class Player(pygame.sprite.Sprite):
                 self.directions = "right"
 
         # Jump
-        if keys[pygame.K_SPACE] and self.rect.y >= settings.SCREEN_HEIGHT - settings.SCREEN_HEIGHT * 0.16:
+        if (keys[pygame.K_SPACE] or keys[pygame.K_w] or keys[pygame.K_UP]) and self.on_ground:
             self.velocity_y = -20
             self.directions = "jump"
 
         self.velocity_y += self.gravity
         self.rect.y += self.velocity_y
 
+        self.on_ground = False
         if self.rect.y >= settings.SCREEN_HEIGHT - settings.SCREEN_HEIGHT * 0.15:
             self.rect.y = settings.SCREEN_HEIGHT - settings.SCREEN_HEIGHT * 0.15
             self.velocity_y = 0
+            self.on_ground = True
             self.directions = "idle"
 
         if self.rect.colliderect(sec_player.rect) and self.velocity_y > 0:
             self.rect.y = sec_player.rect.top - self.height
             self.velocity_y = 0
+            self.on_ground = True
+
+        # Check for collision with platforms
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect) and self.velocity_y > 0:
+                self.rect.y = platform.rect.top - self.height
+                self.velocity_y = 0
+                self.on_ground = True
+
+        # Collisions with bullets
+        for bullet in self.bullets:
+            if self.rect.colliderect(bullet.rect):
+                self.hp -= 25
+                bullet.kill()
+
+        # Collisions with sec_player and bullets
+        for bullet in self.bullets:
+            if sec_player.rect.colliderect(bullet.rect):
+                sec_player.hp -= 25
+                bullet.kill()
 
     def stop_movement(self):
         self.velocity_y = 0
@@ -69,9 +94,3 @@ class Player(pygame.sprite.Sprite):
 
     def last_shot(self):
         self.last_shot = pygame.time.get_ticks()
-
-    def shoot(self, bullets, mouse_pos):
-        bullet_direction = pygame.math.Vector2(mouse_pos) - pygame.math.Vector2(self.rect.center)
-        bullet_direction = bullet_direction.normalize()
-        new_bullet = bullet.Bullet((self.rect.centerx, self.rect.centery), mouse_pos)
-        bullets.add(new_bullet)
