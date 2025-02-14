@@ -148,17 +148,26 @@ class Game:
             'health': self.player.hp
         }
         data = pickle.dumps(game_state)
-        self.client_socket.sendall(data)
+        try:
+            self.client_socket.sendall(data)
+        except Exception as e:
+            print(f"Error sending game state: {e}")
+            self.running = False
 
     def receive_game_state(self):
         """Receive the updated game state from the server"""
-        data = self.client_socket.recv(1024)
-        if data:
-            game_state = pickle.loads(data)
-            self.player.rect.topleft = game_state['player_pos']
-            self.sec_player.rect.topleft = game_state['sec_player_pos']
-            for bullet, pos in zip(self.bullets, game_state['bullets']):
-                bullet.rect.topleft = pos
+        try:
+            data = self.client_socket.recv(1024)
+            if data:
+                game_state = pickle.loads(data)
+                self.player.rect.topleft = game_state['player_pos']
+                self.sec_player.rect.topleft = game_state['sec_player_pos']
+                for bullet, pos in zip(self.bullets, game_state['bullets']):
+                    bullet.rect.topleft = pos
+        except Exception as e:
+            print(f"Error receiving game state: {e}")
+            self.running = False
+            self.client_socket.close()
 
 
 if __name__ == '__main__':
